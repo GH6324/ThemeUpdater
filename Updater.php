@@ -63,8 +63,8 @@ class Updater extends Contents
 
     //第二步下载新版本
     public function second()
-    {
-        $latest = $this->request->latest;
+    {        
+        $latest = $_GET['latest'];
         
         $temp = $this->_dir . "/temp/" . basename(self::$latest);
         $proxy = $this->settings->proxy;
