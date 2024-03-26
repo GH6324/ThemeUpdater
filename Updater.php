@@ -14,89 +14,14 @@ class Updater extends Contents
     public function panel()
     {
 //        // 设置页面标题
-//        $step = $this->request->step;
-//        $latest = $this->request->latest;
+        $step = $this->request->step;
+        $latest = $this->request->latest;
 //        $html = '<div class="main"><ul></ul></div>' . $step;
 //        $this->response->throwContent($html, 'text/html');
-        if (method_exists($this, $this->request->step))
-            call_user_func(array($this, $this->request->step));
+        if (method_exists($this, $step))
+            call_user_func(array($this, $step));
         else
             $this->zero();
-    }
-
-    //升级初章开启进程线
-    public function zero()
-    {
-        $url = Helper::options()->siteUrl . "index.php/themeUpdater/";
-        $adminUrl = Helper::options()->adminUrl;
-        ?>
-        <h2>更新icefox主题</h2>
-        <div id="progress"></div>
-        <script type="text/javascript">
-            function update() {
-                var steps = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
-                var notices = [
-                    '正在备份当前版本',
-                    '正在下载最新版本',
-                    '正在解压缩升级文件',
-                    '正在复制升级最新版本',
-                    '正在清除临时文件',
-                    'icefox主题更新成功'
-                ];
-
-                function printmsg(text, loading) {
-                    loading = arguments.length > 1 ? loading : true;
-                    text = loading ? text + "<span class='loading'>...</span>" : text;
-                    text = "<p>" + text + "</p>";
-                    document.getElementById("progress").innerHTML += text;
-                }
-
-                function ajax(url, callback) {
-                    var xhr;
-                    if (window.XMLHttpRequest) xhr = new XMLHttpRequest();
-                    else if (window.ActiveXObject) xhr = new ActiveXObject("Microsoft.XMLHTTP");
-                    else return alert("Your browser does not support XMLHTTP.");
-                    ;
-
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState == 4) {
-                            if (xhr.status == 200) callback(xhr.responseText);
-                            else return alert("Network Error.");
-                        }
-                    }
-                    xhr.open("GET", url, true);
-                    xhr.send(null);
-                }
-
-                (function step(s) {
-                    [].slice.call(document.querySelectorAll(".loading")).forEach(function (item) {
-                        item.innerHTML = '....';
-                        item.className = ''
-                    });
-                    //终章结语
-                    if (s == steps.length) {
-                        setTimeout(function () {
-                            location.href = "<?php echo $adminUrl; ?>";
-                        }, 2000);
-                        return printmsg("欢迎使用最新版icefox主题，我们将自动为你跳转到后台。如果没有自动跳转，请<a href='<?php echo $adminUrl; ?>'>点击这里</a>。", false);
-                    }
-                    printmsg(notices[s]);
-                    ajax("<?php echo $url; ?>" + steps[s], function (data) {
-                        if (data != "") return printmsg(data);
-                        step(s + 1);
-                    });
-                })(0)
-
-                setInterval(function () {
-                    l = document.querySelector(".loading");
-                    if (l.innerHTML.length == 4) l.innerHTML = '';
-                    l.innerHTML += '.';
-                }, 500);
-            }
-
-            update();
-        </script>
-        <?php
     }
 
 //第一步先备份
@@ -111,13 +36,12 @@ class Updater extends Contents
 
         $backupFile = $themeDir . '/icefox_backup.zip';
         $icefoxThemeDir = $themeDir . '/icefox';
-        echo 'icefox主题目录' . $icefoxThemeDir;
 
-        $zip = new ZipArchive();
-        if ($zip->open($backupFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-            $files = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($icefoxThemeDir),
-                RecursiveIteratorIterator::LEAVES_ONLY
+        $zip = new \ZipArchive();
+        if ($zip->open($backupFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+            $files = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($icefoxThemeDir),
+                \RecursiveIteratorIterator::LEAVES_ONLY
             );
 
             foreach ($files as $name => $file) {
@@ -130,16 +54,18 @@ class Updater extends Contents
 
             $zip->close();
 
-            echo '<p>主题备份成功。你可以在这里下载备份文件: <a href="'.Helper::options()->themeUrl.'/theme_backup.zip">theme_backup.zip</a></p>';
+            // echo '<p>主题备份成功。你可以在这里下载备份文件: <a href="'.$themeDir.'/icefox_backup.zip">icefox_backup.zip</a></p>';
         } else {
             echo '<p>无法创建备份文件。</p>';
         }
+        echo "1";
     }
 
     //第二步下载新版本
     public function second()
     {
         $latest = $this->request->latest;
+        
         $temp = $this->_dir . "/temp/" . basename(self::$latest);
         $proxy = $this->settings->proxy;
         if ($proxy) {

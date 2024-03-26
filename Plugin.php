@@ -94,9 +94,11 @@ class Plugin implements PluginInterface
         <div class=\"panel\">
             <div class="check-panel">正在检测主题最新版本...</div>
             <div class="mt-10">
-                <button class="btn-update">立即更新</button>
+                <button class="btn-update" source="first">立即更新</button>
                 <button class="btn-close">关闭</button>
                 <span class="red">如果最新版本号与当前版本号一致，请不要更新</span>
+            </div>
+            <div class="update-log">
             </div>
         </div>
         </section>`);
@@ -105,21 +107,37 @@ class Plugin implements PluginInterface
             });
             
             $.ajax({
-        url:"http://filedownload/version.json",
-        type:"get",
-        contentType: "application/json",
-        success: function(response){
-            $(".check-panel").html(`检测到主题最新版本(<b class="red">${response.version}</b>)`);
-            $(".btn-update").attr("source",response.latest);
-        },
-        error:function(error){alert(error)}
-        });
-        $(".btn-update").click(function(){
-            let latest = $(this).attr("source");
+                url:"https://localhost:7222/version/version",
+                type:"get",
+                contentType: "application/json",
+                success: function(response){
+                    $(".check-panel").html(`检测到主题最新版本(<b class="red">${response.version}</b>)`);
+                    $(".btn-update").attr("source",response.latest);
+                },
+                error:function(error){}
+                });
+                $(".btn-update").click(function(){
+                    let latest = $(this).attr("source");
 
-            // 跳转更新页面
-            window.location.href = "/themeUpdater/0?latest="+latest;
-        });
+                    // 跳转更新页面
+                    // window.location.href = "/index.php/themeUpdater/0?latest="+latest;
+                    $(".update-log").append("<div>开始更新...</div>");                    
+                    $(".update-log").append("<div>正在备份主题...</div>");
+                    $.ajax({url:"/index.php/themeUpdater/first",type:"get",contentType:"application/json",success:function(response){
+                        if(response==="1"){
+                            $(".update-log").append("<div>正在下载最新版...</div>");
+                            $.ajax({url:"/index.php/themeUpdater/second?latest="+latest,type:"get",contentType:"application/json",success:function(response){
+                                $(".update-log").append("<div>正在解压到临时文件夹...</div>");
+                                $(".update-log").append("<div>正在更新主题...</div>");
+                                $(".update-log").append("<div>正在删除临时文件夹...</div>");
+                                $(".update-log").append("<div>更新完成！</div>");
+                            }});
+                        }else{
+                            alert(response);
+                        }
+                    }});
+                    
+                });
         });
         
         
