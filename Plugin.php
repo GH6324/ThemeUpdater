@@ -94,7 +94,7 @@ class Plugin implements PluginInterface
         <div class=\"panel\">
             <div class="check-panel">正在检测主题最新版本...</div>
             <div class="mt-10">
-                <button class="btn-update" source="first">立即更新</button>
+                <button class="btn-update" source="">立即更新</button>
                 <button class="btn-close">关闭</button>
                 <span class="red">如果最新版本号与当前版本号一致，请不要更新</span>
             </div>
@@ -107,7 +107,7 @@ class Plugin implements PluginInterface
             });
             
             $.ajax({
-                url:"https://localhost:7222/version/version",
+                url:"https://localhost:7148/version.json",
                 type:"get",
                 contentType: "application/json",
                 success: function(response){
@@ -127,10 +127,13 @@ class Plugin implements PluginInterface
                         if(response==="1"){
                             $(".update-log").append("<div>正在下载最新版...</div>");
                             $.ajax({url:"/index.php/themeUpdater/second?latest="+latest,type:"get",contentType:"application/json",success:function(response){
-                                $(".update-log").append("<div>正在解压到临时文件夹...</div>");
+				if(response!="0"){
+			                  $(".update-log").append("<div>正在解压到临时文件夹...</div>");
                                 $(".update-log").append("<div>正在更新主题...</div>");
                                 $(".update-log").append("<div>正在删除临时文件夹...</div>");
                                 $(".update-log").append("<div>更新完成！</div>");
+}
+                                
                             }});
                         }else{
                             alert(response);
