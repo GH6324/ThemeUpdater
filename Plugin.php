@@ -74,7 +74,6 @@ class Plugin implements PluginInterface
         $options = \Typecho\Widget::widget('Widget_Options');
         $pluginOptions = $options->plugin('ThemeUpdater');
         $updateUrl = $pluginOptions->updateUrl;
-        $updateThemeName = $pluginOptions->updateThemeName;
         $currentPageUrl = $_SERVER['REQUEST_URI'];
 
         if (strpos(strtolower($currentPageUrl), strtolower('admin/options-theme.php')) !== false) {
@@ -107,7 +106,7 @@ class Plugin implements PluginInterface
             });
             
             $.ajax({
-                url:"https://localhost:7148/version.json",
+                url:"'.$updateUrl.'",
                 type:"get",
                 contentType: "application/json",
                 success: function(response){
@@ -127,16 +126,20 @@ class Plugin implements PluginInterface
                         if(response==="1"){
                             $(".update-log").append("<div>正在下载最新版...</div>");
                             $.ajax({url:"/index.php/themeUpdater/second?latest="+latest,type:"get",contentType:"application/json",success:function(response){
-				if(response!="0"){
-			                  $(".update-log").append("<div>正在解压到临时文件夹...</div>");
-                                $(".update-log").append("<div>正在更新主题...</div>");
-                                $(".update-log").append("<div>正在删除临时文件夹...</div>");
-                                $(".update-log").append("<div>更新完成！</div>");
-}
-                                
+                                if(response!="0"){
+                                    $(".update-log").append("<div>正在解压到临时文件夹...</div>");
+                                    $.ajax({url:"/index.php/themeUpdater/third",type:"get",contentType:"application/json",success:function(response){
+                                        if(response!="0"){
+                                            $(".update-log").append("<div>正在删除临时文件夹...</div>");
+                                            $.ajax({url:"/index.php/themeUpdater/fourth",type:"get",contentType:"application/json",success:function(response){
+                                                $(".update-log").append("<div>更新完成！</div>");
+                                            }});
+                                        }
+                                    }});                                                
+                                }
                             }});
                         }else{
-                            alert(response);
+                            $(".update-log").append("<div style=\"color:red\">更新失败！</div>");
                         }
                     }});
                     
