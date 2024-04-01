@@ -135,7 +135,9 @@ class Plugin implements PluginInterface
                                                 $(".update-log").append("<div>更新完成！</div>");
                                             }});
                                         }
-                                    }});                                                
+                                    }});
+                                }else{
+                                    $(".update-log").append("<div>下载最新版失败</div>");
                                 }
                             }});
                         }else{

@@ -72,57 +72,35 @@ class Updater extends Contents
             }
         }
 
-        $temp = $tempDir . 'latest.zip';
+        $saveAs = $tempDir . 'latest.zip';
 
-        $source = fopen($latest, "rb");
-        if ($source)
-            $target = fopen($temp, "wb");
-        if ($target) {
-            while (!feof($source)) {
-                $res = fwrite($target, fread($source, 1024 * 8), 1024 * 8);
-                if (!$res) {
-                    echo "错误";
-                    return;
-                }
+        $ch = curl_init($latest);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);// 如果是HTTPS连接，可以考虑关闭SSL证书验证
+        curl_setopt($ch, CURLOPT_NOPROGRESS, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // 允许重定向
+        // 执行cURL会话
+        $response = curl_exec($ch);
+
+        // 检查是否有错误发生
+        if (curl_errno($ch)) {
+            // cURL错误处理
+            echo '网络异常，下载失败';
+        } else {
+            // 保存文件到磁盘
+            if (file_put_contents($saveAs, $response) === false) {
+                // 文件写入错误处理
+                echo '下载新版本出现错误';
+            } else {
+                echo '1';
             }
         }
-        if ($source)
-            fclose($source);
-        if ($target)
-            fclose($target);
 
-        echo "1";
-        // $ch = curl_init($latest);
+        // 关闭cURL会话
+        curl_close($ch);
 
-        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        // curl_setopt($ch, CURLOPT_NOPROGRESS, false);
-        // curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, function ($resource, $download_size, $downloaded, $upload_size, $uploaded) {
-        //     static $previousProgress = 0;
-        //     if ($download_size > 0) {
-        //         $progress = round($downloaded / $download_size * 100);
-        //         if ($progress > $previousProgress) {
-        //             $previousProgress = $progress;
-        //             // echo "下载进度: $progress%\n";
-        //         }
-        //     }
-        // });
-
-        // // 打开本地文件句柄，准备写入
-        // $fp = fopen($temp, 'w+');
-
-        // // 设置cURL选项，将数据写入文件
-        // curl_setopt($ch, CURLOPT_FILE, $fp);
-
-        // // 执行cURL会话
-        // curl_exec($ch);
-
-        // // 关闭cURL会话
-        // curl_close($ch);
-
-        // // 关闭本地文件句柄
-        // fclose($fp);
-
-        // echo "1";
         // if(file_put_contents($temp, file_get_contents($latest))){
         //     echo $temp;
         // }
