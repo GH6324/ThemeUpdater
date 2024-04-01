@@ -11,12 +11,12 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
 }
 
 /**
- * 一款自动更新主题的插件，不用再手动从FTP上传文件更新了
+ * icefox主题自动更新插件，不用再手动从FTP上传文件更新了
  *
  * @package 主题更新插件
  * @author xiaopanglian
  * @version 0.1
- * @link https://xiaopanglian.com/themeupdater.html
+ * @link https://xiaopanglian.com/
  */
 class Plugin implements PluginInterface
 {
