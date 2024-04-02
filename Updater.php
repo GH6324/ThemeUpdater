@@ -120,25 +120,24 @@ class Updater extends Contents
     //第三步解压新版本
     public function third()
     {
-        $zip = new \ZipArchive();
+        include "class-pclzip.php";
         $themeDir = __TYPECHO_ROOT_DIR__ . __TYPECHO_THEME_DIR__;
         $tempDir = $themeDir . "/temp/";
+        $file = $tempDir . "latest.zip";
 
-        try {
-            // 打开ZIP文件
-            if ($zip->open($tempDir . 'latest.zip') === TRUE) {
-                // 解压到指定目录
-                $zip->extractTo($themeDir . '/icefox');
+        $dir = dirname($file);
 
-                // 关闭ZIP文件
-                $zip->close();
+        $zip = new \PclZip($file);
 
-                echo "1";
-            } else {
-                echo "0";
-            }
-        } catch (Exception $exception) {
+        if (!$zip->extract(\PCLZIP_OPT_PATH, $dir) === 0) {
             echo "0";
+        } else {
+            // 更新
+            $lastestDir = $dir;
+            if (is_dir($lastestDir))
+                $this->moveFileOrFolder($lastestDir, $themeDir);
+
+            echo "1";
         }
     }
 
@@ -159,6 +158,79 @@ class Updater extends Contents
 
         echo "1";
     }
-}
+    /**
+     * 移动文件或文件夹到指定目录
+     *
+     * @param string $sourcePath 源文件或文件夹的路径
+     * @param string $destinationPath 目标目录的路径
+     * @return bool 返回移动操作是否成功
+     */
+    private function moveFileOrFolder($sourcePath, $destinationPath)
+    {
+        if (!file_exists($sourcePath)) {
+            return false; // 源文件或文件夹不存在
+        }
 
+        if (is_dir($sourcePath)) {
+            // 如果是文件夹，使用递归方式移动
+            if (file_exists($destinationPath)) {
+                // 如果目标文件夹已存在，则先删除它
+                if (!self::removeDirectory($destinationPath)) {
+                    return false; // 删除目标文件夹失败
+                }
+            }
+
+            // 创建目标文件夹
+            if (!mkdir($destinationPath, 0777, true)) {
+                return false; // 创建目标文件夹失败
+            }
+
+            $items = glob($sourcePath . '/*');
+            foreach ($items as $item) {
+                $newDestination = $destinationPath . '/' . basename($item);
+                if (!moveFileOrFolder($item, $newDestination)) {
+                    return false; // 递归移动失败
+                }
+            }
+
+            // 移动完成后删除源文件夹
+            return @rmdir($sourcePath);
+        } else {
+            // 如果是文件，直接移动
+            return rename($sourcePath, $destinationPath);
+        }
+    }
+    /**
+     * 递归删除目录及其内容
+     *
+     * @param string $directoryPath 目录路径
+     * @return bool 返回删除操作是否成功
+     */
+    function removeDirectory($directoryPath)
+    {
+        if (!file_exists($directoryPath)) {
+            return true; // 目录不存在，无需删除
+        }
+
+        if (!is_dir($directoryPath)) {
+            return false; // 如果不是目录，无法删除
+        }
+
+        $items = array_diff(scandir($directoryPath), ['.', '..']);
+        foreach ($items as $item) {
+            $itemPath = $directoryPath . '/' . $item;
+            if (is_dir($itemPath)) {
+                if (!self::removeDirectory($itemPath)) {
+                    return false; // 递归删除失败
+                }
+            } else {
+                if (!unlink($itemPath)) {
+                    return false; // 删除文件失败
+                }
+            }
+        }
+
+        return @rmdir($directoryPath); // 删除目录
+    }
+}
 ?>
