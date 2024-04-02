@@ -74,13 +74,21 @@ class Updater extends Contents
 
         $saveAs = $tempDir . 'latest.zip';
 
+        try {
+            if (is_file($saveAs)) {
+                unlink($saveAs);
+            }
+        } catch (Exception $exception) {
+
+        }
+
         $ch = curl_init($latest);
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);// 如果是HTTPS连接，可以考虑关闭SSL证书验证
-        curl_setopt($ch, CURLOPT_NOPROGRESS, false);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // 允许重定向
+        // curl_setopt($ch, CURLOPT_NOPROGRESS, false);
+        // curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // 允许重定向
         // 执行cURL会话
         $response = curl_exec($ch);
 
