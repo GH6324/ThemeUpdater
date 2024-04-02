@@ -24,6 +24,7 @@ class Updater extends Contents
     //第一步先备份
     public function first()
     {
+        // 这里备份功能已注释，在没有PHPZip扩展的服务器无法进行备份。可自行扩展。
         echo "1";
         // // 检测ZipArchive扩展是否启用
         // if (!class_exists('ZipArchive', false)) {
@@ -62,8 +63,10 @@ class Updater extends Contents
     //第二步下载新版本
     public function second()
     {
+        // 最新版本地址
         $latest = $_GET['latest'];
 
+        // 插件目录
         $pluginDir = __TYPECHO_ROOT_DIR__ . __TYPECHO_PLUGIN_DIR__;
         $tempDir = $pluginDir . "/temp/";
         if (!is_dir($tempDir)) {
@@ -76,6 +79,7 @@ class Updater extends Contents
         $saveAs = $tempDir . 'latest.zip';
 
         try {
+            // 如果有历史版本，先进行删除，注意，如果服务器没有777权限，无法删除，新版本也无法下载覆盖
             if (is_file($saveAs)) {
                 unlink($saveAs);
             }
