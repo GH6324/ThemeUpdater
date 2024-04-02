@@ -116,16 +116,20 @@ class Updater extends Contents
         $themeDir = __TYPECHO_ROOT_DIR__ . __TYPECHO_THEME_DIR__;
         $tempDir = $themeDir . "/temp/";
 
-        // 打开ZIP文件
-        if ($zip->open($tempDir . 'latest.zip') === TRUE) {
-            // 解压到指定目录
-            $zip->extractTo($themeDir . '/icefox');
+        try {
+            // 打开ZIP文件
+            if ($zip->open($tempDir . 'latest.zip') === TRUE) {
+                // 解压到指定目录
+                $zip->extractTo($themeDir . '/icefox');
 
-            // 关闭ZIP文件
-            $zip->close();
+                // 关闭ZIP文件
+                $zip->close();
 
-            echo "1";
-        } else {
+                echo "1";
+            } else {
+                echo "0";
+            }
+        } catch (Exception $exception) {
             echo "0";
         }
     }
