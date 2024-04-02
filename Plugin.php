@@ -44,15 +44,18 @@ class Plugin implements PluginInterface
      */
     public static function config(Form $form)
     {
-        $updateUrl = new Form\Element\Text(
-            'updateUrl',
-            null,
-            'https://icefox.xiaopanglian.com/version.json',
-            _t('更新主题包下载地址'),
-            _t('填入主题更新包的下载地址')
-        );
+        try {
+            $updateUrl = new Form\Element\Text(
+                'updateUrl',
+                null,
+                'https://icefox.xiaopanglian.com/version.json',
+                _t('更新主题包下载地址'),
+                _t('填入主题更新包的下载地址')
+            );
 
-        $form->addInput($updateUrl);
+            $form->addInput($updateUrl);
+        } catch (\Exception $exception) {
+        }
     }
 
     /**
@@ -78,10 +81,15 @@ class Plugin implements PluginInterface
         } catch (Exception $exc) {
         }
         // 获取插件配置
-        $options = \Typecho\Widget::widget('Widget_Options');
-        $pluginOptions = $options->plugin('ThemeUpdater');
-        $updateUrl = $pluginOptions->updateUrl;
-        $currentPageUrl = $_SERVER['REQUEST_URI'];
+        try {
+            $options = \Typecho\Widget::widget('Widget_Options');
+            $pluginOptions = $options->plugin('ThemeUpdater');
+            $updateUrl = $pluginOptions->updateUrl;
+            $currentPageUrl = $_SERVER['REQUEST_URI'];
+        } catch (Exception $exception) {
+            $updateUrl = '';
+            $currentPageUrl = '';
+        }
         if (defined('__TYPECHO_PLUGIN_DIR__')) {
             $pluginDir = \__TYPECHO_PLUGIN_DIR__;
         }
