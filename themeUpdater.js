@@ -32,7 +32,7 @@ $(function () {
             contentType: "application/json",
             success: function (response) {
                 $(".check-panel").html(`检测到主题最新版本(<b class="red">${response.version}</b>)`);
-                if(response.version == currentVersion){
+                if (response.version == currentVersion) {
                     $(".btn-update").hide();
                 }
                 $(".btn-update").attr("source", response.latest);
@@ -64,9 +64,13 @@ $(function () {
                                                         $(".btn-update").hide();
                                                     }
                                                 });
+                                            } else {
+                                                $(".update-log").append("<div style=\"color:red\">更新失败！</div>");
                                             }
                                         }
                                     });
+                                } else {
+                                    $(".update-log").append("<div style=\"color:red\">更新失败！</div>");
                                 }
                             }
                         });

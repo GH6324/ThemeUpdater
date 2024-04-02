@@ -141,9 +141,13 @@ class Updater extends Contents
         $tempDir = $themeDir . "/temp/";
         $file = $tempDir . 'latest.zip';
 
-        // if(is_file($file)){
-        // 	unlink($file);
-        // }
+        try {
+            if (is_file($file)) {
+                unlink($file);
+            }
+        } catch (Exception $exception) {
+
+        }
 
         echo "1";
     }
