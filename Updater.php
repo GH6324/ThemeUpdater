@@ -24,6 +24,7 @@ class Updater extends Contents
     //第一步先备份
     public function first()
     {
+        // 这里备份功能已注释，在没有PHPZip扩展的服务器无法进行备份。可自行扩展。
         echo "1";
         // // 检测ZipArchive扩展是否启用
         // if (!class_exists('ZipArchive', false)) {
@@ -62,19 +63,23 @@ class Updater extends Contents
     //第二步下载新版本
     public function second()
     {
+        // 最新版本地址
         $latest = $_GET['latest'];
 
-        $themeDir = __TYPECHO_ROOT_DIR__ . __TYPECHO_THEME_DIR__;
-        $tempDir = $themeDir . "/temp/";
+        // 插件目录
+        $pluginDir = __TYPECHO_ROOT_DIR__ . __TYPECHO_PLUGIN_DIR__;
+        $tempDir = $pluginDir . "/temp/";
         if (!is_dir($tempDir)) {
             if (!mkdir($tempDir, 0777, true)) {
                 echo "临时文件夹创建失败";
             }
         }
 
+        
         $saveAs = $tempDir . 'latest.zip';
 
         try {
+            // 如果有历史版本，先进行删除，注意，如果服务器没有777权限，无法删除，新版本也无法下载覆盖
             if (is_file($saveAs)) {
                 unlink($saveAs);
             }
@@ -82,39 +87,22 @@ class Updater extends Contents
 
         }
 
-        $ch = curl_init($latest);
-
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);// 如果是HTTPS连接，可以考虑关闭SSL证书验证
-        // curl_setopt($ch, CURLOPT_NOPROGRESS, false);
-        // curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // 允许重定向
-        // 执行cURL会话
-        $response = curl_exec($ch);
-
-        // 检查是否有错误发生
-        if (curl_errno($ch)) {
-            // cURL错误处理
-            echo '网络异常，下载失败';
-        } else {
-            // 保存文件到磁盘
-            if (file_put_contents($saveAs, $response) === false) {
-                // 文件写入错误处理
-                echo '下载新版本出现错误';
-            } else {
-                echo '1';
+        $source = fopen($latest, "rb");
+        if ($source)
+            $target = fopen($saveAs, "wb");
+        if ($target) {
+            while (!feof($source)) {
+                $res = fwrite($target, fread($source, 1024 * 8), 1024 * 8);
+                if (!$res)
+                    return $this->log("下载新版本写入本地错误");
             }
         }
-
-        // 关闭cURL会话
-        curl_close($ch);
-
-        // if(file_put_contents($temp, file_get_contents($latest))){
-        //     echo $temp;
-        // }
-        // else{
-        // 	echo "0";
-        // }
+        if ($source)
+            fclose($source);
+        if ($target)
+            fclose($target);
+        
+        echo '1';
     }
 
     //第三步解压新版本
@@ -122,7 +110,7 @@ class Updater extends Contents
     {
         include "class-pclzip.php";
         $themeDir = __TYPECHO_ROOT_DIR__ . __TYPECHO_THEME_DIR__;
-        $tempDir = $themeDir . "/temp/";
+        $tempDir = __TYPECHO_ROOT_DIR__ . __TYPECHO_PLUGIN_DIR__ . "/temp/";
         $file = $tempDir . "latest.zip";
 
         $dir = dirname($file);
@@ -133,9 +121,7 @@ class Updater extends Contents
             echo "0";
         } else {
             // 更新
-            $lastestDir = $dir;
-            if (is_dir($lastestDir))
-                $this->moveFileOrFolder($lastestDir, $themeDir);
+            $this->moveFileOrFolder($tempDir.'icefox', $themeDir.'/icefox');
 
             echo "1";
         }
@@ -165,7 +151,7 @@ class Updater extends Contents
      * @param string $destinationPath 目标目录的路径
      * @return bool 返回移动操作是否成功
      */
-    private function moveFileOrFolder($sourcePath, $destinationPath)
+    public function moveFileOrFolder($sourcePath, $destinationPath)
     {
         if (!file_exists($sourcePath)) {
             return false; // 源文件或文件夹不存在
@@ -188,7 +174,7 @@ class Updater extends Contents
             $items = glob($sourcePath . '/*');
             foreach ($items as $item) {
                 $newDestination = $destinationPath . '/' . basename($item);
-                if (!moveFileOrFolder($item, $newDestination)) {
+                if (!$this->moveFileOrFolder($item, $newDestination)) {
                     return false; // 递归移动失败
                 }
             }

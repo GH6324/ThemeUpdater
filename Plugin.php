@@ -46,7 +46,8 @@ class Plugin implements PluginInterface
      */
     public static function config(Form $form)
     {
-        ?>
+        try {
+            ?>
         <form action="?panel=MyFileUploader" method="post" enctype="multipart/form-data">
             <input type="file" name="file" />
             <input type="submit" value="上传" />
@@ -54,14 +55,16 @@ class Plugin implements PluginInterface
 
         <?php
         $updateUrl = new Form\Element\Text(
-            'updateUrl',
-            null,
-            'https://icefox.xiaopanglian.com/version.json',
-            _t('更新主题包下载地址'),
-            _t('填入主题更新包的下载地址')
-        );
+                'updateUrl',
+                null,
+                'https://icefox.xiaopanglian.com/version.json',
+                _t('更新主题包下载地址'),
+                _t('填入主题更新包的下载地址')
+            );
 
-        $form->addInput($updateUrl);
+            $form->addInput($updateUrl);
+        } catch (\Exception $exception) {
+        }
     }
 
     /**
