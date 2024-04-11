@@ -15,7 +15,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
  *
  * @package icefox主题在线更新插件
  * @author 小胖脸
- * @version 0.2
+ * @version 0.3
  * @link https://xiaopanglian.com/
  */
 class Plugin implements PluginInterface
@@ -25,8 +25,10 @@ class Plugin implements PluginInterface
      */
     public static function activate()
     {
-        \Typecho\Plugin::factory('admin/footer.php')->end = __CLASS__ . '::render';
-        Helper::addRoute('themeUpdater', '/themeUpdater/[step]', Updater::class, 'panel', 'index');
+        // \Typecho\Plugin::factory('admin/footer.php')->end = __CLASS__ . '::render';
+        // Helper::addRoute('themeUpdater', '/themeUpdater/[step]', Updater::class, 'panel', 'index');
+        // \Typecho\Plugin::factory('admin/options-plugin.php')->config = __CLASS__ . '::render';
+        \Typecho\Plugin::factory('Widget_Upload')->uploadHandle = __CLASS__ . '::handleUpload';
     }
 
     /**
@@ -34,7 +36,7 @@ class Plugin implements PluginInterface
      */
     public static function deactivate()
     {
-        Helper::removeRoute('themeUpdater');
+        // Helper::removeRoute('themeUpdater');
     }
 
     /**
@@ -44,6 +46,13 @@ class Plugin implements PluginInterface
      */
     public static function config(Form $form)
     {
+        ?>
+        <form action="?panel=MyFileUploader" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" />
+            <input type="submit" value="上传" />
+        </form>
+
+        <?php
         $updateUrl = new Form\Element\Text(
             'updateUrl',
             null,
@@ -70,30 +79,35 @@ class Plugin implements PluginInterface
      */
     public static function render()
     {
-        $themeVersion = "未知";
-        try {
-            if (defined('__THEME_VERSION__')) {
-                $themeVersion = \__THEME_VERSION__;
-            }
-        } catch (Exception $exc) {
-        }
-        // 获取插件配置
-        $options = \Typecho\Widget::widget('Widget_Options');
-        $pluginOptions = $options->plugin('ThemeUpdater');
-        $updateUrl = $pluginOptions->updateUrl;
-        $currentPageUrl = $_SERVER['REQUEST_URI'];
-        if (defined('__TYPECHO_PLUGIN_DIR__')) {
-            $pluginDir = \__TYPECHO_PLUGIN_DIR__;
-        }
+        // $themeVersion = "未知";
+        // try {
+        //     if (defined('__THEME_VERSION__')) {
+        //         $themeVersion = \__THEME_VERSION__;
+        //     }
+        // } catch (Exception $exc) {
+        // }
+        // // 获取插件配置
+        // $options = \Typecho\Widget::widget('Widget_Options');
+        // $pluginOptions = $options->plugin('ThemeUpdater');
+        // $updateUrl = $pluginOptions->updateUrl;
+        // $currentPageUrl = $_SERVER['REQUEST_URI'];
+        // if (defined('__TYPECHO_PLUGIN_DIR__')) {
+        //     $pluginDir = \__TYPECHO_PLUGIN_DIR__;
+        // }
 
-        if (strpos(strtolower($currentPageUrl), strtolower('admin/options-theme.php')) !== false) {
-            echo '<input id="updateUrl" value="' . $updateUrl . '" style="display:none;"/>';
-            echo '<input id="currentVersion" value="' . $themeVersion . '" style="display:none;"/>';
-            $html = '<script src="' . $pluginDir . '\ThemeUpdater\themeUpdater.js"></script>';
+        // if (strpos(strtolower($currentPageUrl), strtolower('admin/options-theme.php')) !== false) {
+        //     echo '<input id="updateUrl" value="' . $updateUrl . '" style="display:none;"/>';
+        //     echo '<input id="currentVersion" value="' . $themeVersion . '" style="display:none;"/>';
+        //     $html = '<script src="' . $pluginDir . '\ThemeUpdater\themeUpdater.js"></script>';
 
-            echo $html;
-        }
+        //     echo $html;
+        // }
 
 
+    }
+
+    public static function handleUpload($file)
+    {
+        return $file;
     }
 }
